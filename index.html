@@ -1,0 +1,1145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Turfside · Book a Field</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+<style>
+  :root {
+    --green: #2EE05A;
+    --green-dark: #1BAA40;
+    --green-bg: #091A0F;
+    --green-mid: #0E2817;
+    --bg: #090909;
+    --card: #141414;
+    --card2: #1A1A1A;
+    --border: #2A2A2A;
+    --border2: #333;
+    --muted: #606060;
+    --text: #F0F0F0;
+    --text-dim: #AAAAAA;
+    --wa: #25D366;
+    --danger: #EF4444;
+    --warn: #F59E0B;
+    --warn-bg: #1C1500;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
+  html, body { height: 100%; background: #050505; overflow: hidden; }
+  body { font-family: 'Inter', sans-serif; color: var(--text); }
+  h1,h2,h3,h4 { font-family: 'Poppins', sans-serif; }
+
+  /* ── PHONE SHELL ── */
+  #shell {
+    position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+    background: radial-gradient(ellipse at 50% 40%, #0d1a10 0%, #050505 70%);
+  }
+  #phone {
+    position: relative; width: 390px; height: 100vh; max-height: 844px;
+    overflow: hidden; background: var(--bg);
+    border-radius: 0; box-shadow: none;
+  }
+  @media (min-width: 480px) {
+    #phone {
+      border-radius: 44px;
+      box-shadow: 0 0 0 1px #1e1e1e, 0 0 0 3px #111, 0 30px 80px rgba(0,0,0,0.9), 0 0 120px rgba(46,224,90,0.04);
+      height: 844px;
+    }
+  }
+
+  /* ── SCREENS ── */
+  .screen {
+    position: absolute; inset: 0; overflow-y: auto; overflow-x: hidden;
+    background: var(--bg);
+    transform: translateX(100%);
+    transition: transform 0.38s cubic-bezier(0.4, 0, 0.2, 1);
+    scrollbar-width: none; -ms-overflow-style: none;
+  }
+  .screen::-webkit-scrollbar { display: none; }
+  .screen.active { transform: translateX(0); }
+  .screen.exit-left { transform: translateX(-30%); }
+
+  /* ── PROGRESS BAR ── */
+  #progress-wrap {
+    position: absolute; top: 0; left: 0; right: 0; z-index: 100;
+    height: 3px; background: var(--border); pointer-events: none;
+    opacity: 0; transition: opacity 0.3s;
+  }
+  #progress-wrap.visible { opacity: 1; }
+  #progress-bar {
+    height: 100%; background: var(--green);
+    transition: width 0.4s cubic-bezier(0.4,0,0.2,1);
+    box-shadow: 0 0 8px var(--green);
+  }
+
+  /* ── PITCH SVG ── */
+  #pitch-bg {
+    position: absolute; inset: 0; opacity: 0.12;
+    pointer-events: none; overflow: hidden;
+  }
+
+  /* ── TYPEWRITER ── */
+  .typewriter::after {
+    content: '|'; animation: blink 0.8s infinite; color: var(--green);
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+  /* ── PULSE ── */
+  @keyframes pulse-glow {
+    0%,100% { box-shadow: 0 0 0 0 rgba(46,224,90,0.4); }
+    50% { box-shadow: 0 0 0 8px rgba(46,224,90,0); }
+  }
+  .pulse { animation: pulse-glow 2.2s ease-in-out infinite; }
+
+  /* ── FADE-UP ── */
+  @keyframes fadeUp {
+    from { opacity:0; transform:translateY(20px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+  .fade-up { animation: fadeUp 0.5s ease forwards; }
+  .fade-up-1 { animation: fadeUp 0.5s 0.1s ease both; }
+  .fade-up-2 { animation: fadeUp 0.5s 0.2s ease both; }
+  .fade-up-3 { animation: fadeUp 0.5s 0.35s ease both; }
+  .fade-up-4 { animation: fadeUp 0.5s 0.5s ease both; }
+  .fade-up-5 { animation: fadeUp 0.5s 0.65s ease both; }
+
+  /* ── SUCCESS ANIMATION ── */
+  @keyframes circleStroke {
+    from { stroke-dashoffset: 220; }
+    to   { stroke-dashoffset: 0; }
+  }
+  @keyframes checkStroke {
+    from { stroke-dashoffset: 80; }
+    to   { stroke-dashoffset: 0; }
+  }
+  @keyframes scaleIn {
+    from { transform: scale(0.7); opacity: 0; }
+    to   { transform: scale(1);   opacity: 1; }
+  }
+  .circle-anim {
+    stroke-dasharray: 220; stroke-dashoffset: 220;
+    animation: circleStroke 0.55s 0.1s cubic-bezier(0.4,0,0.2,1) forwards;
+  }
+  .check-anim {
+    stroke-dasharray: 80; stroke-dashoffset: 80;
+    animation: checkStroke 0.35s 0.5s ease forwards;
+  }
+  .success-card { animation: scaleIn 0.45s 0.7s cubic-bezier(0.34,1.56,0.64,1) both; }
+
+  /* ── CALENDAR ── */
+  .cal-day {
+    width: 40px; height: 40px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-family: 'Inter', sans-serif; font-weight: 500;
+    cursor: pointer; transition: all 0.15s; position: relative;
+    margin: 1px auto;
+  }
+  .cal-day:not(.disabled):not(.empty):hover { background: var(--border2); }
+  .cal-day.selected { background: var(--green); color: #000; font-weight: 700; }
+  .cal-day.disabled { color: var(--muted); cursor: not-allowed; opacity: 0.4; }
+  .cal-day.empty { cursor: default; }
+  .cal-day.limited::after {
+    content: ''; position: absolute; bottom: 3px; left: 50%; transform: translateX(-50%);
+    width: 4px; height: 4px; border-radius: 50%; background: var(--warn);
+  }
+  .cal-day.limited { color: var(--warn); }
+  .cal-day.today { box-shadow: inset 0 0 0 1px var(--border2); }
+
+  /* ── DURATION CHIPS ── */
+  .dur-chip {
+    flex: 1; padding: 16px 12px; border-radius: 14px;
+    border: 1.5px solid var(--border2); cursor: pointer;
+    transition: all 0.2s; text-align: center;
+    background: var(--card);
+  }
+  .dur-chip.selected {
+    border-color: var(--green); background: rgba(46,224,90,0.08);
+  }
+
+  /* ── TIME SLOTS ── */
+  .slot {
+    padding: 12px 8px; border-radius: 12px;
+    border: 1.5px solid var(--border2); cursor: pointer;
+    transition: all 0.18s; text-align: center;
+    background: var(--card); font-size: 13px; font-weight: 500;
+    min-height: 48px; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+  }
+  .slot:hover:not(.full) { border-color: var(--green); background: rgba(46,224,90,0.06); }
+  .slot.selected {
+    border-color: var(--green); background: rgba(46,224,90,0.12);
+    color: var(--green); font-weight: 600;
+    box-shadow: 0 0 0 1px rgba(46,224,90,0.3), 0 4px 20px rgba(46,224,90,0.1);
+  }
+  .slot.full {
+    border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.05);
+    color: var(--danger); cursor: not-allowed; opacity: 0.6;
+  }
+
+  /* ── FLOATING LABEL INPUTS ── */
+  .field-wrap { position: relative; margin-bottom: 6px; }
+  .field-wrap label {
+    position: absolute; left: 16px; top: 16px;
+    font-size: 14px; color: var(--muted);
+    transition: all 0.18s; pointer-events: none; z-index: 1;
+    background: var(--card2); padding: 0 4px;
+  }
+  .field-wrap input:focus ~ label,
+  .field-wrap input.has-value ~ label {
+    top: -9px; font-size: 11px; color: var(--green); font-weight: 600;
+  }
+  .field-wrap input.error ~ label { color: var(--danger); }
+  .field-wrap input {
+    width: 100%; padding: 16px 16px 14px;
+    background: var(--card2); border: 1.5px solid var(--border2);
+    border-radius: 14px; color: var(--text); font-size: 15px;
+    font-family: 'Inter', sans-serif; outline: none;
+    transition: border-color 0.18s;
+    -webkit-appearance: none;
+  }
+  .field-wrap input:focus { border-color: var(--green); }
+  .field-wrap input.valid { border-color: var(--green); }
+  .field-wrap input.error { border-color: var(--danger); }
+  .field-err { font-size: 11px; color: var(--danger); padding-left: 4px; margin-top: 3px; min-height: 16px; }
+
+  /* ── STEPPER ── */
+  .stepper-btn {
+    width: 44px; height: 44px; border-radius: 50%;
+    background: var(--card2); border: 1.5px solid var(--border2);
+    color: var(--text); font-size: 20px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s; user-select: none;
+  }
+  .stepper-btn:hover { background: var(--border2); border-color: var(--green); }
+  .stepper-btn:active { transform: scale(0.92); }
+
+  /* ── BUTTONS ── */
+  .btn-primary {
+    width: 100%; padding: 17px; border-radius: 16px;
+    background: var(--green); color: #000;
+    font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 16px;
+    border: none; cursor: pointer; transition: all 0.2s;
+    letter-spacing: 0.2px;
+  }
+  .btn-primary:hover { background: #38f068; transform: translateY(-1px); }
+  .btn-primary:active { transform: scale(0.98); }
+  .btn-primary:disabled {
+    background: var(--border2); color: var(--muted);
+    cursor: not-allowed; transform: none; box-shadow: none;
+  }
+  .btn-ghost {
+    width: 100%; padding: 15px; border-radius: 16px;
+    background: transparent; color: var(--text-dim);
+    font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 15px;
+    border: 1.5px solid var(--border2); cursor: pointer; transition: all 0.2s;
+  }
+  .btn-ghost:hover { border-color: var(--muted); color: var(--text); }
+  .btn-wa {
+    width: 100%; padding: 17px; border-radius: 16px;
+    background: var(--wa); color: #fff;
+    font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 16px;
+    border: none; cursor: pointer; transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+  }
+  .btn-wa:hover { background: #20bc58; transform: translateY(-1px); }
+  .btn-wa:active { transform: scale(0.98); }
+
+  /* ── BACK BUTTON ── */
+  .back-btn {
+    display: flex; align-items: center; gap: 6px;
+    color: var(--green); font-size: 14px; font-weight: 600;
+    cursor: pointer; padding: 8px 0; background: none; border: none;
+    font-family: 'Inter', sans-serif;
+  }
+
+  /* ── SUMMARY CARD ── */
+  .summary-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 0; border-bottom: 1px solid var(--border);
+  }
+  .summary-row:last-child { border-bottom: none; }
+
+  /* ── LOADING OVERLAY ── */
+  #loading-overlay {
+    position: absolute; inset: 0; background: rgba(9,9,9,0.92);
+    display: none; align-items: center; justify-content: center;
+    flex-direction: column; gap: 16px; z-index: 1000;
+    backdrop-filter: blur(4px);
+  }
+  #loading-overlay.show { display: flex; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spinner {
+    width: 44px; height: 44px; border-radius: 50%;
+    border: 3px solid var(--border2);
+    border-top-color: var(--green);
+    animation: spin 0.8s linear infinite;
+  }
+
+  /* ── COPY BTN ── */
+  .copy-btn {
+    padding: 7px 14px; border-radius: 8px;
+    background: var(--card); border: 1px solid var(--border2);
+    color: var(--text-dim); font-size: 12px; font-weight: 600;
+    cursor: pointer; transition: all 0.2s; white-space: nowrap;
+  }
+  .copy-btn.copied { background: rgba(46,224,90,0.12); border-color: var(--green); color: var(--green); }
+
+  /* ── STEP BAR ── */
+  .step-seg {
+    flex: 1; height: 4px; border-radius: 2px; background: var(--border2);
+    transition: background 0.3s; position: relative; overflow: hidden;
+  }
+  .step-seg.done { background: var(--green); }
+  .step-seg.active::after {
+    content: ''; position: absolute; inset: 0;
+    background: var(--green); animation: fillStep 0.4s ease forwards;
+  }
+  @keyframes fillStep { from { width: 0; } to { width: 100%; } }
+
+  /* scroll padding on screens */
+  .screen > div { padding-bottom: 32px; }
+
+  /* star rating */
+  .stars { color: #F59E0B; }
+
+  /* scrollable area inside screen for S2 and S3 */
+  .scroll-content { overflow-y: auto; overflow-x: hidden; height: 100%; scrollbar-width: none; }
+  .scroll-content::-webkit-scrollbar { display: none; }
+</style>
+</head>
+<body>
+
+<div id="shell">
+<div id="phone">
+
+  <!-- PROGRESS BAR -->
+  <div id="progress-wrap">
+    <div id="progress-bar" style="width:0%"></div>
+  </div>
+
+  <!-- LOADING OVERLAY -->
+  <div id="loading-overlay">
+    <div class="spinner"></div>
+    <p style="color:var(--text-dim);font-size:14px;font-weight:500;">Securing your field…</p>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       SCREEN 1 — HERO LANDING
+  ═══════════════════════════════════════════ -->
+  <div id="s1" class="screen active">
+    <!-- Pitch BG -->
+    <div id="pitch-bg">
+      <svg width="390" height="844" viewBox="0 0 390 844" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Outer boundary -->
+        <rect x="30" y="120" width="330" height="520" rx="4" stroke="#2EE05A" stroke-width="2"/>
+        <!-- Centre line -->
+        <line x1="30" y1="380" x2="360" y2="380" stroke="#2EE05A" stroke-width="1.5"/>
+        <!-- Centre circle -->
+        <circle cx="195" cy="380" r="65" stroke="#2EE05A" stroke-width="1.5"/>
+        <!-- Centre spot -->
+        <circle cx="195" cy="380" r="4" fill="#2EE05A"/>
+        <!-- Penalty boxes -->
+        <rect x="105" y="120" width="180" height="75" stroke="#2EE05A" stroke-width="1.5"/>
+        <rect x="105" y="445" width="180" height="75" stroke="#2EE05A" stroke-width="1.5"/>
+        <!-- Goal areas -->
+        <rect x="148" y="120" width="94" height="30" stroke="#2EE05A" stroke-width="1.5"/>
+        <rect x="148" y="490" width="94" height="30" stroke="#2EE05A" stroke-width="1.5"/>
+        <!-- Goals -->
+        <rect x="166" y="112" width="58" height="12" rx="2" stroke="#2EE05A" stroke-width="1.5" fill="none"/>
+        <rect x="166" y="520" width="58" height="12" rx="2" stroke="#2EE05A" stroke-width="1.5" fill="none"/>
+        <!-- Corner arcs -->
+        <path d="M30 120 A12 12 0 0 1 42 132" stroke="#2EE05A" stroke-width="1.5" fill="none"/>
+        <path d="M360 120 A12 12 0 0 0 348 132" stroke="#2EE05A" stroke-width="1.5" fill="none"/>
+        <path d="M30 640 A12 12 0 0 0 42 628" stroke="#2EE05A" stroke-width="1.5" fill="none"/>
+        <path d="M360 640 A12 12 0 0 1 348 628" stroke="#2EE05A" stroke-width="1.5" fill="none"/>
+        <!-- Penalty spots -->
+        <circle cx="195" cy="173" r="3" fill="#2EE05A"/>
+        <circle cx="195" cy="587" r="3" fill="#2EE05A"/>
+        <!-- Penalty arcs -->
+        <path d="M155 195 A50 50 0 0 1 235 195" stroke="#2EE05A" stroke-width="1.5" fill="none"/>
+        <path d="M155 565 A50 50 0 0 0 235 565" stroke="#2EE05A" stroke-width="1.5" fill="none"/>
+        <!-- Grass stripes (subtle) -->
+        <line x1="30" y1="150" x2="360" y2="150" stroke="#2EE05A" stroke-width="0.3" stroke-dasharray="4 4" opacity="0.4"/>
+        <line x1="30" y1="210" x2="360" y2="210" stroke="#2EE05A" stroke-width="0.3" stroke-dasharray="4 4" opacity="0.4"/>
+        <line x1="30" y1="270" x2="360" y2="270" stroke="#2EE05A" stroke-width="0.3" stroke-dasharray="4 4" opacity="0.4"/>
+        <line x1="30" y1="330" x2="360" y2="330" stroke="#2EE05A" stroke-width="0.3" stroke-dasharray="4 4" opacity="0.4"/>
+        <line x1="30" y1="430" x2="360" y2="430" stroke="#2EE05A" stroke-width="0.3" stroke-dasharray="4 4" opacity="0.4"/>
+        <line x1="30" y1="490" x2="360" y2="490" stroke="#2EE05A" stroke-width="0.3" stroke-dasharray="4 4" opacity="0.4"/>
+        <line x1="30" y1="550" x2="360" y2="550" stroke="#2EE05A" stroke-width="0.3" stroke-dasharray="4 4" opacity="0.4"/>
+        <line x1="30" y1="610" x2="360" y2="610" stroke="#2EE05A" stroke-width="0.3" stroke-dasharray="4 4" opacity="0.4"/>
+      </svg>
+    </div>
+    <!-- Gradient overlay on pitch -->
+    <div style="position:absolute;inset:0;background:linear-gradient(180deg, rgba(9,9,9,0.6) 0%, rgba(9,9,9,0.3) 40%, rgba(9,9,9,0.85) 75%, var(--bg) 100%);pointer-events:none;"></div>
+
+    <div style="position:relative;z-index:1;padding:60px 24px 32px;min-height:100%;">
+      <!-- Logo -->
+      <div class="fade-up" style="margin-bottom:8px;">
+        <div style="display:inline-flex;align-items:center;gap:10px;background:rgba(46,224,90,0.1);border:1px solid rgba(46,224,90,0.2);border-radius:50px;padding:6px 14px 6px 8px;">
+          <div style="width:32px;height:32px;background:var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;">⚽</div>
+          <span style="font-family:'Poppins',sans-serif;font-weight:700;font-size:15px;color:var(--green);letter-spacing:0.5px;">TURFSIDE</span>
+        </div>
+      </div>
+
+      <!-- Headline -->
+      <div class="fade-up-1" style="margin-bottom:6px;">
+        <h1 style="font-size:42px;font-weight:900;line-height:1.05;letter-spacing:-1px;">
+          Your Game.<br><span style="color:var(--green);">Your Rules.</span>
+        </h1>
+      </div>
+
+      <!-- Tagline -->
+      <div class="fade-up-2" style="margin-bottom:28px;height:24px;">
+        <p id="tagline" class="typewriter" style="color:var(--text-dim);font-size:15px;font-weight:400;"></p>
+      </div>
+
+      <!-- Info strip -->
+      <div class="fade-up-3" style="display:flex;gap:8px;margin-bottom:20px;">
+        <div style="flex:1;background:rgba(20,20,20,0.8);backdrop-filter:blur(8px);border:1px solid var(--border2);border-radius:12px;padding:12px;">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+            <i data-lucide="clock" style="width:13px;height:13px;color:var(--green);"></i>
+            <span style="font-size:10px;font-weight:600;color:var(--muted);letter-spacing:0.5px;">HOURS</span>
+          </div>
+          <p style="font-size:12px;font-weight:500;color:var(--text);">Mon–Sun</p>
+          <p style="font-size:12px;color:var(--text-dim);">7AM – 10PM</p>
+        </div>
+        <div style="flex:1;background:rgba(20,20,20,0.8);backdrop-filter:blur(8px);border:1px solid var(--border2);border-radius:12px;padding:12px;">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+            <i data-lucide="map-pin" style="width:13px;height:13px;color:var(--green);"></i>
+            <span style="font-size:10px;font-weight:600;color:var(--muted);letter-spacing:0.5px;">LOCATION</span>
+          </div>
+          <p style="font-size:12px;font-weight:500;color:var(--text);">Chaguanas</p>
+          <p style="font-size:12px;color:var(--text-dim);">Trinidad</p>
+        </div>
+      </div>
+
+      <!-- Activity card -->
+      <div class="fade-up-4" style="background:var(--card);border:1px solid var(--border2);border-radius:20px;padding:20px;margin-bottom:20px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+          <div style="width:42px;height:42px;background:rgba(46,224,90,0.12);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;">⚽</div>
+          <div>
+            <p style="font-family:'Poppins',sans-serif;font-weight:700;font-size:16px;">5-a-Side Football</p>
+            <p style="font-size:12px;color:var(--muted);">Grass Turf · Up to 10 Players</p>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <div style="flex:1;background:var(--green-bg);border:1px solid rgba(46,224,90,0.2);border-radius:10px;padding:10px;text-align:center;">
+            <p style="font-size:11px;color:var(--green);font-weight:600;margin-bottom:2px;">1 HOUR</p>
+            <p style="font-family:'Poppins',sans-serif;font-weight:700;font-size:17px;color:var(--text);">$300 <span style="font-size:11px;font-weight:500;color:var(--muted);">TTD</span></p>
+          </div>
+          <div style="flex:1;background:var(--green-bg);border:1px solid rgba(46,224,90,0.2);border-radius:10px;padding:10px;text-align:center;">
+            <p style="font-size:11px;color:var(--green);font-weight:600;margin-bottom:2px;">2 HOURS</p>
+            <p style="font-family:'Poppins',sans-serif;font-weight:700;font-size:17px;color:var(--text);">$550 <span style="font-size:11px;font-weight:500;color:var(--muted);">TTD</span></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- CTA -->
+      <div class="fade-up-5" style="margin-bottom:20px;">
+        <button class="btn-primary pulse" onclick="goTo(2)" style="font-size:18px;padding:19px;border-radius:18px;">
+          ⚡ &nbsp;BOOK A FIELD
+        </button>
+      </div>
+
+      <!-- Social proof -->
+      <div style="text-align:center;opacity:0;animation:fadeUp 0.5s 0.9s ease forwards;">
+        <div class="stars" style="font-size:14px;letter-spacing:2px;">★★★★★</div>
+        <p style="font-size:12px;color:var(--muted);margin-top:4px;">Trusted by players across Trinidad</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       SCREEN 2 — BOOKING FLOW
+  ═══════════════════════════════════════════ -->
+  <div id="s2" class="screen">
+    <div style="padding:56px 20px 100px;">
+      <!-- Header -->
+      <div style="display:flex;align-items:center;margin-bottom:20px;">
+        <button class="back-btn" onclick="goBack(1)" aria-label="Go back">
+          <i data-lucide="chevron-left" style="width:18px;height:18px;"></i> Back
+        </button>
+        <div style="flex:1;text-align:center;">
+          <p style="font-size:11px;font-weight:600;color:var(--muted);letter-spacing:1px;">STEP 1 OF 3</p>
+        </div>
+        <div style="width:54px;"></div>
+      </div>
+      <!-- Step segments -->
+      <div style="display:flex;gap:5px;margin-bottom:24px;">
+        <div class="step-seg active" id="seg1-1"></div>
+        <div class="step-seg" id="seg1-2"></div>
+        <div class="step-seg" id="seg1-3"></div>
+      </div>
+
+      <h2 style="font-size:22px;font-weight:700;margin-bottom:4px;">Select a Date</h2>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">Choose when you want to play</p>
+
+      <!-- Calendar -->
+      <div style="background:var(--card);border:1px solid var(--border2);border-radius:20px;padding:16px;margin-bottom:20px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+          <button onclick="calNav(-1)" style="background:var(--card2);border:1px solid var(--border2);border-radius:10px;width:36px;height:36px;color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;" aria-label="Previous month">
+            <i data-lucide="chevron-left" style="width:16px;height:16px;"></i>
+          </button>
+          <p id="cal-month" style="font-family:'Poppins',sans-serif;font-weight:700;font-size:15px;"></p>
+          <button onclick="calNav(1)" style="background:var(--card2);border:1px solid var(--border2);border-radius:10px;width:36px;height:36px;color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;" aria-label="Next month">
+            <i data-lucide="chevron-right" style="width:16px;height:16px;"></i>
+          </button>
+        </div>
+        <!-- Day labels -->
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:6px;">
+          <div style="text-align:center;font-size:11px;color:var(--muted);font-weight:600;padding:4px 0;">M</div>
+          <div style="text-align:center;font-size:11px;color:var(--muted);font-weight:600;padding:4px 0;">T</div>
+          <div style="text-align:center;font-size:11px;color:var(--muted);font-weight:600;padding:4px 0;">W</div>
+          <div style="text-align:center;font-size:11px;color:var(--muted);font-weight:600;padding:4px 0;">T</div>
+          <div style="text-align:center;font-size:11px;color:var(--muted);font-weight:600;padding:4px 0;">F</div>
+          <div style="text-align:center;font-size:11px;color:var(--warn);font-weight:600;padding:4px 0;">S</div>
+          <div style="text-align:center;font-size:11px;color:var(--warn);font-weight:600;padding:4px 0;">S</div>
+        </div>
+        <div id="cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr);"></div>
+        <!-- Legend -->
+        <div style="display:flex;gap:12px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);">
+          <div style="display:flex;align-items:center;gap:5px;">
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--warn);"></div>
+            <span style="font-size:10px;color:var(--muted);">Limited</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:5px;">
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--green);"></div>
+            <span style="font-size:10px;color:var(--muted);">Selected</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Duration -->
+      <h3 style="font-size:16px;font-weight:700;margin-bottom:12px;">Session Duration</h3>
+      <div style="display:flex;gap:10px;margin-bottom:20px;">
+        <div class="dur-chip" id="dur-1" onclick="selectDuration(1,300)" role="button" aria-label="1 hour session $300 TTD">
+          <p style="font-family:'Poppins',sans-serif;font-weight:700;font-size:16px;">1 Hour</p>
+          <p style="font-size:13px;color:var(--green);font-weight:600;margin-top:2px;">$300 TTD</p>
+        </div>
+        <div class="dur-chip" id="dur-2" onclick="selectDuration(2,550)" role="button" aria-label="2 hours session $550 TTD">
+          <p style="font-family:'Poppins',sans-serif;font-weight:700;font-size:16px;">2 Hours</p>
+          <p style="font-size:13px;color:var(--green);font-weight:600;margin-top:2px;">$550 TTD</p>
+        </div>
+      </div>
+
+      <!-- Time slots -->
+      <h3 style="font-size:16px;font-weight:700;margin-bottom:12px;">Available Times</h3>
+      <div id="time-slots" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:28px;">
+        <p style="color:var(--muted);font-size:13px;grid-column:1/-1;">Select a date and duration first</p>
+      </div>
+
+      <!-- Continue -->
+      <button id="s2-continue" class="btn-primary" disabled onclick="goTo(3)" aria-label="Continue to customer details">
+        Continue →
+      </button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       SCREEN 3 — CUSTOMER DETAILS
+  ═══════════════════════════════════════════ -->
+  <div id="s3" class="screen">
+    <div style="padding:56px 20px 100px;">
+      <!-- Header -->
+      <div style="display:flex;align-items:center;margin-bottom:20px;">
+        <button class="back-btn" onclick="goBack(2)" aria-label="Go back">
+          <i data-lucide="chevron-left" style="width:18px;height:18px;"></i> Back
+        </button>
+        <div style="flex:1;text-align:center;">
+          <p style="font-size:11px;font-weight:600;color:var(--muted);letter-spacing:1px;">STEP 2 OF 3</p>
+        </div>
+        <div style="width:54px;"></div>
+      </div>
+      <!-- Step segments -->
+      <div style="display:flex;gap:5px;margin-bottom:24px;">
+        <div class="step-seg done" id="seg2-1"></div>
+        <div class="step-seg active" id="seg2-2"></div>
+        <div class="step-seg" id="seg2-3"></div>
+      </div>
+
+      <h2 style="font-size:22px;font-weight:700;margin-bottom:4px;">Your Details</h2>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:18px;">Quick — we only need 4 things</p>
+
+      <!-- Booking summary card -->
+      <div id="s3-summary" style="background:var(--card);border:1px solid var(--border2);border-left:3px solid var(--green);border-radius:16px;padding:16px;margin-bottom:22px;">
+        <p style="font-size:10px;font-weight:600;color:var(--muted);letter-spacing:0.8px;margin-bottom:10px;">BOOKING SUMMARY</p>
+        <div class="summary-row">
+          <span style="font-size:12px;color:var(--muted);">Activity</span>
+          <span style="font-size:13px;font-weight:600;">5-a-Side Football</span>
+        </div>
+        <div class="summary-row">
+          <span style="font-size:12px;color:var(--muted);">Date</span>
+          <span id="sum-date" style="font-size:13px;font-weight:600;">—</span>
+        </div>
+        <div class="summary-row">
+          <span style="font-size:12px;color:var(--muted);">Time</span>
+          <span id="sum-time" style="font-size:13px;font-weight:600;">—</span>
+        </div>
+        <div class="summary-row" style="border-bottom:none;">
+          <span style="font-size:12px;color:var(--muted);">Total</span>
+          <span id="sum-total" style="font-size:16px;font-weight:700;color:var(--green);">—</span>
+        </div>
+      </div>
+
+      <!-- Form -->
+      <div style="display:flex;flex-direction:column;gap:18px;margin-bottom:18px;">
+        <!-- Full Name -->
+        <div>
+          <div class="field-wrap">
+            <input type="text" id="f-name" autocomplete="name" aria-label="Full Name"
+              oninput="checkHasValue(this);validateField(this)"
+              onblur="validateField(this)">
+            <label for="f-name">Full Name</label>
+          </div>
+          <p class="field-err" id="err-name"></p>
+        </div>
+        <!-- Email -->
+        <div>
+          <div class="field-wrap">
+            <input type="email" id="f-email" autocomplete="email" aria-label="Email Address"
+              oninput="checkHasValue(this);validateField(this)"
+              onblur="validateField(this)">
+            <label for="f-email">Email Address</label>
+          </div>
+          <p class="field-err" id="err-email"></p>
+        </div>
+        <!-- WhatsApp -->
+        <div>
+          <div class="field-wrap">
+            <input type="tel" id="f-wa" autocomplete="tel" aria-label="WhatsApp Number" placeholder=" "
+              oninput="checkHasValue(this);validateField(this)"
+              onblur="validateField(this)">
+            <label for="f-wa">WhatsApp Number</label>
+          </div>
+          <p style="font-size:11px;color:var(--muted);padding-left:4px;margin-top:2px;">Format: +1 868 xxx xxxx</p>
+          <p class="field-err" id="err-wa"></p>
+        </div>
+        <!-- Players stepper -->
+        <div>
+          <p style="font-size:12px;color:var(--muted);font-weight:600;letter-spacing:0.5px;margin-bottom:10px;">NUMBER OF PLAYERS</p>
+          <div style="background:var(--card2);border:1.5px solid var(--border2);border-radius:14px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;">
+            <button class="stepper-btn" onclick="stepPlayers(-1)" aria-label="Decrease players">−</button>
+            <div style="text-align:center;">
+              <p id="players-count" style="font-family:'Poppins',sans-serif;font-weight:700;font-size:26px;color:var(--text);">5</p>
+              <p style="font-size:11px;color:var(--muted);">players (2–10)</p>
+            </div>
+            <button class="stepper-btn" onclick="stepPlayers(1)" aria-label="Increase players">+</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Payment banner -->
+      <div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.25);border-radius:14px;padding:14px 16px;display:flex;gap:10px;align-items:flex-start;margin-bottom:24px;">
+        <span style="font-size:18px;line-height:1;">🏦</span>
+        <p style="font-size:12px;color:rgba(245,158,11,0.9);font-weight:500;line-height:1.5;">Payment is by <strong>bank transfer</strong> after submission. Transfer details will be shown on the next screen.</p>
+      </div>
+
+      <button id="s3-continue" class="btn-primary" disabled onclick="submitDetails()" aria-label="Confirm booking">
+        Confirm Booking →
+      </button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       SCREEN 4 — CONFIRMATION
+  ═══════════════════════════════════════════ -->
+  <div id="s4" class="screen">
+    <div style="padding:56px 20px 40px;">
+      <!-- Step segments -->
+      <div style="display:flex;gap:5px;margin-bottom:30px;">
+        <div class="step-seg done"></div>
+        <div class="step-seg done"></div>
+        <div class="step-seg done"></div>
+      </div>
+
+      <!-- Success graphic -->
+      <div style="display:flex;justify-content:center;margin-bottom:20px;">
+        <svg width="90" height="90" viewBox="0 0 90 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="45" cy="45" r="34" stroke="#2EE05A" stroke-width="3" class="circle-anim"/>
+          <polyline points="28,45 40,57 62,33" stroke="#2EE05A" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none" class="check-anim"/>
+          <circle cx="45" cy="45" r="34" fill="rgba(46,224,90,0.06)"/>
+        </svg>
+      </div>
+
+      <!-- Title -->
+      <div style="text-align:center;margin-bottom:8px;opacity:0;animation:fadeUp 0.4s 0.75s ease forwards;">
+        <h2 style="font-size:26px;font-weight:800;">Booking Confirmed!</h2>
+      </div>
+      <div style="text-align:center;margin-bottom:24px;opacity:0;animation:fadeUp 0.4s 0.9s ease forwards;">
+        <p id="s4-ref" style="display:inline-block;background:rgba(46,224,90,0.1);border:1px solid rgba(46,224,90,0.25);border-radius:50px;padding:5px 14px;font-size:12px;font-weight:700;color:var(--green);letter-spacing:1px;"></p>
+      </div>
+
+      <!-- Booking card -->
+      <div class="success-card" style="background:var(--card);border:1px solid var(--border2);border-left:3px solid var(--green);border-radius:16px;padding:18px;margin-bottom:16px;">
+        <p style="font-size:10px;font-weight:600;color:var(--muted);letter-spacing:0.8px;margin-bottom:12px;">YOUR BOOKING</p>
+        <div class="summary-row">
+          <span style="font-size:12px;color:var(--muted);">Activity</span>
+          <span style="font-size:13px;font-weight:600;">5-a-Side Football</span>
+        </div>
+        <div class="summary-row">
+          <span style="font-size:12px;color:var(--muted);">Date</span>
+          <span id="c4-date" style="font-size:13px;font-weight:600;"></span>
+        </div>
+        <div class="summary-row">
+          <span style="font-size:12px;color:var(--muted);">Time</span>
+          <span id="c4-time" style="font-size:13px;font-weight:600;"></span>
+        </div>
+        <div class="summary-row">
+          <span style="font-size:12px;color:var(--muted);">Duration</span>
+          <span id="c4-dur" style="font-size:13px;font-weight:600;"></span>
+        </div>
+        <div class="summary-row">
+          <span style="font-size:12px;color:var(--muted);">Players</span>
+          <span id="c4-players" style="font-size:13px;font-weight:600;"></span>
+        </div>
+        <div class="summary-row" style="border-bottom:none;">
+          <span style="font-size:12px;color:var(--muted);">Total Due</span>
+          <span id="c4-total" style="font-size:18px;font-weight:800;color:var(--green);"></span>
+        </div>
+      </div>
+
+      <!-- Bank transfer card -->
+      <div class="success-card" style="background:var(--card);border:1px solid rgba(245,158,11,0.25);border-left:3px solid var(--warn);border-radius:16px;padding:18px;margin-bottom:16px;">
+        <p style="font-size:10px;font-weight:600;color:var(--warn);letter-spacing:0.8px;margin-bottom:12px;">🏦 BANK TRANSFER DETAILS</p>
+        <div class="summary-row">
+          <span style="font-size:12px;color:var(--muted);">Bank</span>
+          <span style="font-size:13px;font-weight:600;">First Citizens Bank</span>
+        </div>
+        <div class="summary-row">
+          <span style="font-size:12px;color:var(--muted);">Account Name</span>
+          <span style="font-size:12px;font-weight:600;text-align:right;max-width:55%;">Turfside Sports & Rec. Centre Ltd.</span>
+        </div>
+        <div class="summary-row">
+          <span style="font-size:12px;color:var(--muted);">Account No.</span>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span id="acct-no" style="font-size:13px;font-weight:700;letter-spacing:1px;">123-456-789-0</span>
+            <button class="copy-btn" onclick="copyAcct(this)" aria-label="Copy account number">Copy</button>
+          </div>
+        </div>
+        <div class="summary-row">
+          <span style="font-size:12px;color:var(--muted);">Branch</span>
+          <span style="font-size:13px;font-weight:600;">Chaguanas</span>
+        </div>
+        <div style="margin-top:12px;padding:10px;background:rgba(245,158,11,0.06);border-radius:10px;">
+          <p id="transfer-note" style="font-size:12px;color:var(--warn);font-weight:500;text-align:center;line-height:1.4;"></p>
+        </div>
+      </div>
+
+      <!-- WhatsApp button -->
+      <div class="success-card" style="margin-bottom:12px;">
+        <button class="btn-wa" id="wa-btn" aria-label="Send proof of payment via WhatsApp">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="white">
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+            <path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.558 4.119 1.532 5.845L.057 23.75a.5.5 0 0 0 .614.64l6.083-1.59A11.944 11.944 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.9a9.9 9.9 0 0 1-5.03-1.364l-.36-.214-3.733.977.998-3.635-.235-.374A9.86 9.86 0 0 1 2.1 12C2.1 6.534 6.534 2.1 12 2.1S21.9 6.534 21.9 12 17.466 21.9 12 21.9z"/>
+          </svg>
+          📲 &nbsp;Send Proof of Payment
+        </button>
+      </div>
+      <p style="text-align:center;font-size:11px;color:var(--muted);margin-bottom:20px;">Opens WhatsApp · Booking reference pre-filled</p>
+
+      <!-- Dual confirmation note -->
+      <div class="success-card" style="background:rgba(46,224,90,0.05);border:1px solid rgba(46,224,90,0.15);border-radius:14px;padding:14px;text-align:center;margin-bottom:20px;">
+        <p style="font-size:12px;color:var(--text-dim);line-height:1.6;">
+          ✉️ Confirmation sent to your email<br>
+          💬 Details sent to your WhatsApp
+        </p>
+      </div>
+
+      <button class="btn-ghost" onclick="resetAndGoHome()" aria-label="Make another booking">
+        Make Another Booking
+      </button>
+    </div>
+  </div>
+
+</div><!-- /phone -->
+</div><!-- /shell -->
+
+<script>
+// ─── STATE ────────────────────────────────────────────────────────────────
+const bookingState = {
+  date: null, duration: null, time: null, price: null,
+  name: '', email: '', whatsapp: '', players: 5, ref: ''
+};
+
+let calYear, calMonth;
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const DAYS_SHORT = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const DAYS_LONG = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+const MONTHS_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+// Seeded random for "full" slots — consistent per day of month
+function seededRand(seed) {
+  const x = Math.sin(seed+1) * 10000;
+  return x - Math.floor(x);
+}
+
+// ─── SCREEN NAVIGATION ───────────────────────────────────────────────────
+let currentScreen = 1;
+
+function goTo(n) {
+  const from = document.getElementById('s' + currentScreen);
+  const to   = document.getElementById('s' + n);
+  from.classList.remove('active');
+  from.classList.add('exit-left');
+  setTimeout(() => from.classList.remove('exit-left'), 400);
+  to.classList.add('active');
+  to.scrollTop = 0;
+  currentScreen = n;
+  updateProgress(n);
+  if (n === 3) populateS3Summary();
+  if (n === 4) populateS4();
+}
+
+function goBack(to) {
+  const from = document.getElementById('s' + currentScreen);
+  const target = document.getElementById('s' + to);
+  from.style.transition = 'transform 0.35s cubic-bezier(0.4,0,0.2,1)';
+  from.style.transform = 'translateX(100%)';
+  setTimeout(() => {
+    from.classList.remove('active');
+    from.style.transform = '';
+  }, 350);
+  target.classList.add('active');
+  target.scrollTop = 0;
+  currentScreen = to;
+  updateProgress(to);
+}
+
+function updateProgress(n) {
+  const wrap = document.getElementById('progress-wrap');
+  const bar  = document.getElementById('progress-bar');
+  if (n === 1) {
+    wrap.classList.remove('visible');
+    bar.style.width = '0%';
+  } else {
+    wrap.classList.add('visible');
+    const pct = { 2: '33%', 3: '66%', 4: '100%' };
+    bar.style.width = pct[n] || '0%';
+  }
+}
+
+// ─── CALENDAR ────────────────────────────────────────────────────────────
+function initCal() {
+  const now = new Date();
+  calYear = now.getFullYear();
+  calMonth = now.getMonth();
+  renderCal();
+}
+
+function calNav(dir) {
+  calMonth += dir;
+  if (calMonth < 0) { calMonth = 11; calYear--; }
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  renderCal();
+}
+
+function renderCal() {
+  document.getElementById('cal-month').textContent = MONTHS[calMonth] + ' ' + calYear;
+  const grid = document.getElementById('cal-grid');
+  grid.innerHTML = '';
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  const firstDay = new Date(calYear, calMonth, 1);
+  // Monday=0 offset
+  let startDow = firstDay.getDay() - 1;
+  if (startDow < 0) startDow = 6;
+  const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
+
+  for (let i = 0; i < startDow; i++) {
+    const empty = document.createElement('div');
+    empty.className = 'cal-day empty';
+    grid.appendChild(empty);
+  }
+  for (let d = 1; d <= daysInMonth; d++) {
+    const date = new Date(calYear, calMonth, d);
+    const dow = date.getDay(); // 0=Sun, 6=Sat
+    const isPast = date < today;
+    const isToday = date.getTime() === today.getTime();
+    const isLimited = dow === 0 || dow === 1; // Sun or Mon
+    const isSelected = bookingState.date &&
+      bookingState.date.getFullYear() === calYear &&
+      bookingState.date.getMonth() === calMonth &&
+      bookingState.date.getDate() === d;
+
+    const el = document.createElement('div');
+    el.textContent = d;
+    el.className = 'cal-day';
+    if (isPast) el.classList.add('disabled');
+    else if (isSelected) el.classList.add('selected');
+    else if (isLimited) el.classList.add('limited');
+    if (isToday && !isSelected) el.classList.add('today');
+
+    if (!isPast) {
+      el.onclick = () => selectDate(new Date(calYear, calMonth, d));
+    }
+    el.setAttribute('aria-label', `${d} ${MONTHS[calMonth]} ${calYear}${isPast?' (past, unavailable)':''}`);
+    grid.appendChild(el);
+  }
+}
+
+function selectDate(date) {
+  bookingState.date = date;
+  bookingState.time = null;
+  renderCal();
+  renderSlots();
+  checkS2Continue();
+}
+
+// ─── DURATION ────────────────────────────────────────────────────────────
+function selectDuration(hrs, price) {
+  bookingState.duration = hrs;
+  bookingState.price = price;
+  document.getElementById('dur-1').classList.toggle('selected', hrs === 1);
+  document.getElementById('dur-2').classList.toggle('selected', hrs === 2);
+  bookingState.time = null;
+  renderSlots();
+  checkS2Continue();
+}
+
+// ─── TIME SLOTS ──────────────────────────────────────────────────────────
+function renderSlots() {
+  const container = document.getElementById('time-slots');
+  if (!bookingState.date || !bookingState.duration) {
+    container.innerHTML = '<p style="color:var(--muted);font-size:13px;grid-column:1/-1;">Select a date and duration first</p>';
+    return;
+  }
+  const slots1hr = ['7:00 AM','9:00 AM','11:00 AM','1:00 PM','3:00 PM','5:00 PM','7:00 PM','9:00 PM'];
+  const slots2hr = ['7:00 AM','10:00 AM','1:00 PM','4:00 PM','7:00 PM'];
+  const slots = bookingState.duration === 1 ? slots1hr : slots2hr;
+  const seed  = bookingState.date.getDate() + bookingState.date.getMonth() * 31;
+
+  // Pick 2-3 "full" slots
+  const fullSet = new Set();
+  const numFull = 2 + Math.floor(seededRand(seed) * 2);
+  const indices = [...slots.keys()].sort(() => seededRand(seed * 7 + fullSet.size) - 0.5);
+  indices.slice(0, numFull).forEach(i => fullSet.add(i));
+
+  container.innerHTML = '';
+  slots.forEach((time, i) => {
+    const isFull = fullSet.has(i);
+    const isSelected = bookingState.time === time;
+    const el = document.createElement('div');
+    el.className = 'slot' + (isFull ? ' full' : '') + (isSelected ? ' selected' : '');
+    el.innerHTML = `<span style="font-size:13px;">${time}</span>${isFull ? '<span style="font-size:10px;color:var(--danger);margin-top:2px;">Full</span>' : ''}`;
+    if (!isFull) {
+      el.onclick = () => selectTime(time);
+      el.setAttribute('aria-label', time + ' available');
+    } else {
+      el.setAttribute('aria-label', time + ' fully booked');
+    }
+    container.appendChild(el);
+  });
+}
+
+function selectTime(time) {
+  bookingState.time = time;
+  renderSlots();
+  checkS2Continue();
+}
+
+function checkS2Continue() {
+  const btn = document.getElementById('s2-continue');
+  const ok = bookingState.date && bookingState.duration && bookingState.time;
+  btn.disabled = !ok;
+}
+
+// ─── S3 SUMMARY ──────────────────────────────────────────────────────────
+function populateS3Summary() {
+  document.getElementById('sum-date').textContent = formatDate(bookingState.date);
+  document.getElementById('sum-time').textContent = bookingState.time + (bookingState.duration === 2 ? ' · 2 hrs' : ' · 1 hr');
+  document.getElementById('sum-total').textContent = '$' + bookingState.price + ' TTD';
+  // Restore saved form values
+  if (bookingState.name)     { const el = document.getElementById('f-name');  el.value = bookingState.name;     el.classList.add('has-value'); }
+  if (bookingState.email)    { const el = document.getElementById('f-email'); el.value = bookingState.email;    el.classList.add('has-value'); }
+  if (bookingState.whatsapp) { const el = document.getElementById('f-wa');    el.value = bookingState.whatsapp; el.classList.add('has-value'); }
+  document.getElementById('players-count').textContent = bookingState.players;
+  validateAllFields();
+}
+
+function formatDate(d) {
+  if (!d) return '—';
+  const dow = d.getDay();
+  const dayStr = DAYS_SHORT[dow === 0 ? 6 : dow - 1];
+  return `${dayStr} ${d.getDate()} ${MONTHS_SHORT[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+// ─── FORM VALIDATION ─────────────────────────────────────────────────────
+function checkHasValue(el) {
+  el.classList.toggle('has-value', el.value.trim().length > 0);
+}
+
+function validateField(el) {
+  checkHasValue(el);
+  const id = el.id;
+  let err = '';
+  const v = el.value.trim();
+  if (id === 'f-name') {
+    if (!v) err = 'Please enter your full name';
+    else if (v.length < 2) err = 'Name must be at least 2 characters';
+  } else if (id === 'f-email') {
+    if (!v) err = 'Please enter your email address';
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) err = 'Please enter a valid email address';
+  } else if (id === 'f-wa') {
+    if (!v) err = 'Please enter your WhatsApp number';
+    else if (!/^\+?[\d\s\-()]{8,18}$/.test(v)) err = 'Please enter a valid phone number';
+  }
+  const errEl = document.getElementById('err-' + id.replace('f-', ''));
+  if (errEl) errEl.textContent = err;
+  el.classList.toggle('valid', !err && v.length > 0);
+  el.classList.toggle('error', !!err && v.length > 0);
+  checkS3Continue();
+}
+
+function validateAllFields() {
+  ['f-name','f-email','f-wa'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el && el.value) validateField(el);
+  });
+}
+
+function isFormValid() {
+  const name  = document.getElementById('f-name').value.trim();
+  const email = document.getElementById('f-email').value.trim();
+  const wa    = document.getElementById('f-wa').value.trim();
+  return name.length >= 2 &&
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) &&
+    /^\+?[\d\s\-()]{8,18}$/.test(wa);
+}
+
+function checkS3Continue() {
+  document.getElementById('s3-continue').disabled = !isFormValid();
+}
+
+// ─── STEPPER ─────────────────────────────────────────────────────────────
+function stepPlayers(delta) {
+  let p = bookingState.players + delta;
+  p = Math.max(2, Math.min(10, p));
+  bookingState.players = p;
+  document.getElementById('players-count').textContent = p;
+}
+
+// ─── SUBMIT ──────────────────────────────────────────────────────────────
+function submitDetails() {
+  if (!isFormValid()) return;
+  bookingState.name     = document.getElementById('f-name').value.trim();
+  bookingState.email    = document.getElementById('f-email').value.trim();
+  bookingState.whatsapp = document.getElementById('f-wa').value.trim();
+  // Loading state
+  const overlay = document.getElementById('loading-overlay');
+  overlay.classList.add('show');
+  setTimeout(() => {
+    overlay.classList.remove('show');
+    goTo(4);
+  }, 1600);
+}
+
+// ─── S4 POPULATE ─────────────────────────────────────────────────────────
+function populateS4() {
+  // Generate ref
+  const now = new Date();
+  const y = now.getFullYear();
+  const mo = String(now.getMonth()+1).padStart(2,'0');
+  const dy = String(now.getDate()).padStart(2,'0');
+  const rand = String(Math.floor(100 + Math.random() * 900));
+  bookingState.ref = `TS-${y}${mo}${dy}-${rand}`;
+
+  document.getElementById('s4-ref').textContent = bookingState.ref;
+  document.getElementById('c4-date').textContent    = formatDate(bookingState.date);
+  document.getElementById('c4-time').textContent    = bookingState.time;
+  document.getElementById('c4-dur').textContent     = bookingState.duration + ' Hour' + (bookingState.duration > 1 ? 's' : '');
+  document.getElementById('c4-players').textContent = bookingState.players + ' Players';
+  document.getElementById('c4-total').textContent   = '$' + bookingState.price + ' TTD';
+  document.getElementById('transfer-note').textContent =
+    `Transfer $${bookingState.price} TTD within 24 hours to secure your slot`;
+
+  // WhatsApp deep link
+  const msg = encodeURIComponent(
+    `Hi Turfside! Here is my proof of payment for booking ${bookingState.ref} on ${formatDate(bookingState.date)} at ${bookingState.time}. Total paid: $${bookingState.price} TTD.`
+  );
+  document.getElementById('wa-btn').onclick = () => {
+    window.open(`https://wa.me/18681234567?text=${msg}`, '_blank');
+  };
+}
+
+// ─── COPY ACCOUNT ────────────────────────────────────────────────────────
+function copyAcct(btn) {
+  navigator.clipboard.writeText('123-456-789-0').then(() => {
+    btn.textContent = 'Copied ✓';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = 'Copy';
+      btn.classList.remove('copied');
+    }, 2200);
+  }).catch(() => {
+    btn.textContent = 'Copied ✓';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2200);
+  });
+}
+
+// ─── RESET ───────────────────────────────────────────────────────────────
+function resetAndGoHome() {
+  bookingState.date = null; bookingState.duration = null;
+  bookingState.time = null; bookingState.price = null;
+  bookingState.name = ''; bookingState.email = '';
+  bookingState.whatsapp = ''; bookingState.players = 5; bookingState.ref = '';
+  document.getElementById('f-name').value = '';
+  document.getElementById('f-email').value = '';
+  document.getElementById('f-wa').value = '';
+  ['f-name','f-email','f-wa'].forEach(id => {
+    const el = document.getElementById(id);
+    el.classList.remove('has-value','valid','error');
+  });
+  ['err-name','err-email','err-wa'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = '';
+  });
+  document.getElementById('players-count').textContent = '5';
+  document.getElementById('dur-1').classList.remove('selected');
+  document.getElementById('dur-2').classList.remove('selected');
+  renderCal();
+  document.getElementById('time-slots').innerHTML = '<p style="color:var(--muted);font-size:13px;grid-column:1/-1;">Select a date and duration first</p>';
+  checkS2Continue();
+
+  const s4 = document.getElementById('s4');
+  s4.style.transition = 'none';
+  s4.classList.remove('active');
+  s4.style.transform = 'translateX(100%)';
+  setTimeout(() => { s4.style.transition = ''; s4.style.transform = ''; }, 50);
+
+  const s1 = document.getElementById('s1');
+  s1.classList.add('active');
+  s1.scrollTop = 0;
+  currentScreen = 1;
+  updateProgress(1);
+}
+
+// ─── TYPEWRITER ──────────────────────────────────────────────────────────
+function typewriter(el, text, speed, cb) {
+  let i = 0;
+  function type() {
+    if (i < text.length) {
+      el.textContent += text[i++];
+      setTimeout(type, speed);
+    } else {
+      el.classList.remove('typewriter');
+      if (cb) cb();
+    }
+  }
+  setTimeout(type, 600);
+}
+
+// ─── INIT ────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  lucide.createIcons();
+  initCal();
+  typewriter(document.getElementById('tagline'), 'Book your field in 60 seconds.', 38);
+  checkS2Continue();
+});
+</script>
+</body>
+</html>
